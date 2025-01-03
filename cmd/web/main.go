@@ -3,13 +3,14 @@ package main
 import (
 	"fmt"
 	"log"
-	"github.com/vsys-yashrajk/bookings/pkg/config"
-	"github.com/vsys-yashrajk/bookings/pkg/handlers"
-	"github.com/vsys-yashrajk/bookings/pkg/render"
+
 	"net/http"
 	"time"
 
 	"github.com/alexedwards/scs/v2"
+	"github.com/vsys-yashrajk/bookings/pkg/config"
+	"github.com/vsys-yashrajk/bookings/pkg/handlers"
+	"github.com/vsys-yashrajk/bookings/pkg/render"
 )
 
 const portNumber = ":8080"
@@ -17,10 +18,12 @@ const portNumber = ":8080"
 var app config.AppConfig
 var session *scs.SessionManager
 
+// main is the main function
 func main() {
-
+	// change this to true when in production
 	app.InProduction = false
 
+	// set up the session
 	session = scs.New()
 	session.Lifetime = 24 * time.Hour
 	session.Cookie.Persist = true
@@ -30,7 +33,6 @@ func main() {
 	app.Session = session
 
 	tc, err := render.CreateTemplateCache()
-
 	if err != nil {
 		log.Fatal("cannot create template cache")
 	}
@@ -41,14 +43,17 @@ func main() {
 	repo := handlers.NewRepo(&app)
 	handlers.NewHandlers(repo)
 
-	render.NewTemplate(&app)
+	render.NewTemplates(&app)
 
-	fmt.Println("server started at port", portNumber)
+	fmt.Printf("%s", fmt.Sprintf("Staring application on port %s", portNumber))
 
 	srv := &http.Server{
 		Addr:    portNumber,
 		Handler: routes(&app),
 	}
+
 	err = srv.ListenAndServe()
-	log.Fatal(err)
+	if err != nil {
+		log.Fatal(err)
+	}
 }
