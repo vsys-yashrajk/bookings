@@ -1,11 +1,10 @@
 package handlers
 
 import (
+	"myapp/pkg/config"
+	"myapp/pkg/models"
+	"myapp/pkg/render"
 	"net/http"
-
-	"github.com/vsys-yashrajk/bookings/pkg/config"
-	"github.com/vsys-yashrajk/bookings/pkg/models"
-	"github.com/vsys-yashrajk/bookings/pkg/render"
 )
 
 // Repo the repository used by the handlers

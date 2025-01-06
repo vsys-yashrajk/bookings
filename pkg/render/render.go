@@ -3,14 +3,13 @@ package render
 import (
 	"bytes"
 	"fmt"
+	"myapp/pkg/config"
+	"myapp/pkg/models"
 
 	"html/template"
 	"log"
 	"net/http"
 	"path/filepath"
-
-	"github.com/vsys-yashrajk/bookings/pkg/config"
-	"github.com/vsys-yashrajk/bookings/pkg/models"
 )
 
 var functions = template.FuncMap{}

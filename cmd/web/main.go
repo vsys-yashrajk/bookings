@@ -3,14 +3,13 @@ package main
 import (
 	"fmt"
 	"log"
-
+	"myapp/pkg/config"
+	"myapp/pkg/handlers"
+	"myapp/pkg/render"
 	"net/http"
 	"time"
 
 	"github.com/alexedwards/scs/v2"
-	"github.com/vsys-yashrajk/bookings/pkg/config"
-	"github.com/vsys-yashrajk/bookings/pkg/handlers"
-	"github.com/vsys-yashrajk/bookings/pkg/render"
 )
 
 const portNumber = ":8080"
