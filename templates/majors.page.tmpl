@@ -16,18 +16,19 @@
             <div class="col">
                 <h1 class="text-center mt-4">Major's Suite</h1>
                 <p>
-                    Your home away form home, set on the majestic waters of the Atlantic Ocean, this will be a vacation
-                    to remember.
-                    Your home away form home, set on the majestic waters of the Atlantic Ocean, this will be a vacation
-                    to remember.
-                    Your home away form home, set on the majestic waters of the Atlantic Ocean, this will be a vacation
-                    to remember.
-                    Your home away form home, set on the majestic waters of the Atlantic Ocean, this will be a vacation
-                    to remember.
-                    Your home away form home, set on the majestic waters of the Atlantic Ocean, this will be a vacation
-                    to remember.
-                    Your home away form home, set on the majestic waters of the Atlantic Ocean, this will be a vacation
-                    to remember.
+                    Indulge in the ultimate luxury experience with Major's Suite. Designed for those who seek space, comfort, and top-tier amenities, this suite takes your stay to the next level. Featuring elegant furnishings, a spacious living area, and a grand bedroom, the Major's Suite provides the perfect setting for a restful retreat or an unforgettable getaway.Perfect for those who want more space and refined comfort, Major's Suite is your gateway to a lavish stay.<br>
+
+                    <b>Room Features:</b><br>
+                    <ul>
+                        <li>Expansive king-size bed with high-end linens</li>
+                        <li>Separate living area with a plush sofa and seating</li>
+                        <li>Large flat-screen TV with premium streaming options</li>
+                        <li>Fully equipped kitchenette for in-suite dining</li>
+                        <li>Large en-suite bathroom with a soaking tub and separate rainfall shower</li>
+                        <li>High-speed Wi-Fi and desk space for work needs</li>
+                        <li>Personal climate control for year-round comfort</li>
+                        <li>Complimentary snacks, refreshments, and luxury toiletries</li>
+                    </ul>
                 </p>
             </div>
         </div>
@@ -36,7 +37,7 @@
         <div class="row">
 
             <div class="col text-center">
-
+                <p><b>Reserve Major's Suite now and immerse yourself in unparalleled luxury and style.</b></p>
                 <a id="check-availability-button" href="#!" class="btn btn-success">Check Availability</a>
 
             </div>
@@ -50,8 +51,8 @@
 
 {{define "js"}}
     <script>
-        document.getElementById("check-availability-button").addEventListener("click", function () {
-            let html = `
+    document.getElementById("check-availability-button").addEventListener("click", function () {
+        let html = `
         <form id="check-availability-form" action="" method="post" novalidate class="needs-validation">
             <div class="form-row">
                 <div class="col">
@@ -68,10 +69,39 @@
             </div>
         </form>
         `;
-            attention.custom({
-                title: 'Choose your dates',
-                msg: html,
-            });
-        })
-    </script>
+        attention.custom({
+            title: 'Choose your dates',
+            msg: html,
+            willOpen: () => {
+                const elem = document.getElementById("reservation-dates-modal");
+                const rp = new DateRangePicker(elem, {
+                    format: 'yyyy-mm-dd',
+                    showOnFocus: true,
+                })
+            },
+            didOpen: () => {
+                document.getElementById("start").removeAttribute("disabled");
+                document.getElementById("end").removeAttribute("disabled");
+            },
+            callback: function(result) {
+                console.log("called");
+
+                let form = document.getElementById("check-availability-form");
+                let formData = new FormData(form);
+                formData.append("csrf_token", "{{.CSRFToken}}");
+
+                fetch('/search-availability-json', {
+                    method: "post",
+                    body: formData,
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        console.log(data);
+                        console.log(data.ok);
+                        console.log(data.message);
+                    })
+            }
+        });
+    })
+</script>
 {{end}}

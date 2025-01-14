@@ -1,14 +1,19 @@
 package main
 
 import (
+	"encoding/gob"
 	"fmt"
 	"log"
-	"myapp/internal/config"
-	"myapp/internal/handlers"
-	"myapp/internal/render"
 	"net/http"
+	"os"
 	"time"
 
+	"github.com/Yashrajkanade/bookings/internal/config"
+	"github.com/Yashrajkanade/bookings/internal/driver"
+	"github.com/Yashrajkanade/bookings/internal/handlers"
+	"github.com/Yashrajkanade/bookings/internal/helpers"
+	"github.com/Yashrajkanade/bookings/internal/models"
+	"github.com/Yashrajkanade/bookings/internal/render"
 	"github.com/alexedwards/scs/v2"
 )
 
@@ -16,33 +21,16 @@ const portNumber = ":8080"
 
 var app config.AppConfig
 var session *scs.SessionManager
+var infoLog *log.Logger
+var errorLog *log.Logger
 
 // main is the main function
 func main() {
-	// change this to true when in production
-	app.InProduction = false
-
-	// set up the session
-	session = scs.New()
-	session.Lifetime = 24 * time.Hour
-	session.Cookie.Persist = true
-	session.Cookie.SameSite = http.SameSiteLaxMode
-	session.Cookie.Secure = app.InProduction
-
-	app.Session = session
-
-	tc, err := render.CreateTemplateCache()
+	db, err := run()
 	if err != nil {
-		log.Fatal("cannot create template cache")
+		log.Fatal(err)
 	}
-
-	app.TemplateCache = tc
-	app.UseCache = false
-
-	repo := handlers.NewRepo(&app)
-	handlers.NewHandlers(repo)
-
-	render.NewTemplates(&app)
+	defer db.SQL.Close()
 
 	fmt.Printf("%s", fmt.Sprintf("Staring application on port %s", portNumber))
 
@@ -55,4 +43,57 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+}
+
+func run() (*driver.DB, error) {
+	// what am I going to put in the session
+	gob.Register(models.Reservation{})
+	gob.Register(models.User{})
+	gob.Register(models.Room{})
+	gob.Register(models.RoomRestriction{})
+
+	// change this to true when in production
+	app.InProduction = false
+
+	infoLog = log.New(os.Stdout, "INFO\t", log.Ldate|log.Ltime)
+	app.InfoLog = infoLog
+
+	errorLog = log.New(os.Stdout, "ERROR\t", log.Ldate|log.Ltime|log.Lshortfile)
+	app.ErrorLog = errorLog
+
+	// set up the session
+	session = scs.New()
+	session.Lifetime = 24 * time.Hour
+	session.Cookie.Persist = true
+	session.Cookie.SameSite = http.SameSiteLaxMode
+	session.Cookie.Secure = app.InProduction
+
+	app.Session = session
+
+	// connect to database
+	log.Println("Connecting to database...")
+	db, err := driver.ConnectSQL("host=localhost port=5432 dbname=bookings user=postgres password=927472")
+	if err != nil {
+		log.Fatal("Cannot connect to database! Dying...")
+	}
+
+	log.Println("Connected to database!")
+
+	defer db.SQL.Close()
+
+	tc, err := render.CreateTemplateCache()
+	if err != nil {
+		log.Fatal("cannot create template cache")
+		return nil, err
+	}
+
+	app.TemplateCache = tc
+	app.UseCache = false
+
+	repo := handlers.NewRepo(&app, db)
+	handlers.NewHandlers(repo)
+	render.NewRenderer(&app)
+	helpers.NewHelpers(&app)
+
+	return db, nil
 }
