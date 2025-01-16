@@ -32,7 +32,13 @@ func main() {
 	}
 	defer db.SQL.Close()
 
-	fmt.Printf("%s", fmt.Sprintf("Staring application on port %s", portNumber))
+	defer close(app.MailChan)
+
+	fmt.Println("starting mail listner...")
+	listenForMail()
+
+
+	fmt.Printf("%s", fmt.Sprintf("Staring application on port %s\n", portNumber))
 
 	srv := &http.Server{
 		Addr:    portNumber,
@@ -51,6 +57,9 @@ func run() (*driver.DB, error) {
 	gob.Register(models.User{})
 	gob.Register(models.Room{})
 	gob.Register(models.RoomRestriction{})
+
+	mailChan := make(chan models.MailData)
+	app.MailChan = mailChan
 
 	// change this to true when in production
 	app.InProduction = false
@@ -79,7 +88,6 @@ func run() (*driver.DB, error) {
 
 	log.Println("Connected to database!")
 
-	defer db.SQL.Close()
 
 	tc, err := render.CreateTemplateCache()
 	if err != nil {
