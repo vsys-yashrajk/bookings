@@ -60,22 +60,24 @@
             </div>
 
             <hr>
-            <div class="float-left">
-                <input type="submit" class="btn btn-primary" value="Save">
-                {{if eq $src "cal"}}
-                    <a href="#!" onclick="window.history.go(-1)" class="btn btn-warning">Cancel</a>
-                {{else}}
-                    <a href="/admin/reservations-{{$src}}" class="btn btn-warning">Cancel</a>
-                {{end}}
-                {{if eq $res.Processed 0}}
-                    <a href="#!" class="btn btn-info" onclick="processRes({{$res.ID}})">Mark as Processed</a>
-                {{end}}
+            <div class="d-flex justify-content-between">
+                <div>
+                    <input type="submit" class="btn btn-primary" value="Save">
+                    {{if eq $src "cal"}}
+                        <a href="#!" onclick="window.history.go(-1)" class="btn btn-warning">Cancel</a>
+                    {{else}}
+                        <a href="/admin/reservations-{{$src}}" class="btn btn-warning">Cancel</a>
+                    {{end}}
+                    {{if eq $res.Processed 0}}
+                        <a href="#!" class="btn btn-info" onclick="processRes({{$res.ID}})">Mark as Processed</a>
+                    {{end}}
+                </div>
+
+                <div>
+                    <a href="#!" class="btn btn-danger" onclick="deleteRes({{$res.ID}})">Delete</a>
+                </div>
             </div>
 
-            <div class="float-right">
-                <a href="#!" class="btn btn-danger" onclick="deleteRes({{$res.ID}})">Delete</a>
-            </div>
-            <div class="clearfix"></div>
         </form>
 
     </div>
