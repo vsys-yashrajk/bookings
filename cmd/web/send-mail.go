@@ -13,14 +13,14 @@ import (
 
 func listenForMail() {
 	go func() {
-		for{
+		for {
 			msg := <-app.MailChan
 			sendMsg(msg)
 		}
 	}()
 }
 
-func sendMsg(m models.MailData){
+func sendMsg(m models.MailData) {
 	server := mail.NewSMTPClient()
 	server.Host = "localhost"
 	server.Port = 1025
@@ -28,31 +28,29 @@ func sendMsg(m models.MailData){
 	server.ConnectTimeout = 10 * time.Second
 	server.SendTimeout = 10 * time.Second
 
-	client,err := server.Connect()
-	if err != nil{
+	client, err := server.Connect()
+	if err != nil {
 		errorLog.Println(err)
 	}
 
 	email := mail.NewMSG()
 	email.SetFrom(m.From).AddTo(m.To).SetSubject(m.Subject)
-	if m.Template == ""{
+	if m.Template == "" {
 		email.SetBody(mail.TextHTML, m.Content)
 	} else {
-		data,err := os.ReadFile(fmt.Sprintf("./email-templates/%s",m.Template))
+		data, err := os.ReadFile(fmt.Sprintf("./email-templates/%s", m.Template))
 		if err != nil {
-            app.ErrorLog.Println(err)
-        }
+			app.ErrorLog.Println(err)
+		}
 
 		mailTemplate := string(data)
-		msgToSend := strings.Replace(mailTemplate,"[%body%]",m.Content,1)
+		msgToSend := strings.Replace(mailTemplate, "[%body%]", m.Content, 1)
 		email.SetBody(mail.TextHTML, msgToSend)
 	}
-	
 	err = email.Send(client)
-	if err != nil{
-		errorLog.Println(err)
+	if err != nil {
+		log.Println(err)
 	} else {
-		log.Println("Email Sent!")
+		log.Println("Email sent!")
 	}
-
 }

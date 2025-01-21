@@ -4,16 +4,16 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
-	"log"
-	"time"
 
 	"github.com/Yashrajkanade/bookings/internal/config"
 	"github.com/Yashrajkanade/bookings/internal/models"
 	"github.com/justinas/nosurf"
 
 	"html/template"
+	"log"
 	"net/http"
 	"path/filepath"
+	"time"
 )
 
 var functions = template.FuncMap{

@@ -4,10 +4,6 @@ import (
 	"encoding/gob"
 	"flag"
 	"fmt"
-	"log"
-	"net/http"
-	"os"
-	"time"
 
 	"github.com/Yashrajkanade/bookings/internal/config"
 	"github.com/Yashrajkanade/bookings/internal/driver"
@@ -16,6 +12,11 @@ import (
 	"github.com/Yashrajkanade/bookings/internal/models"
 	"github.com/Yashrajkanade/bookings/internal/render"
 	"github.com/alexedwards/scs/v2"
+
+	"log"
+	"net/http"
+	"os"
+	"time"
 )
 
 const portNumber = ":8080"

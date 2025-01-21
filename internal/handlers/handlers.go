@@ -3,12 +3,6 @@ package handlers
 import (
 	"encoding/json"
 	"fmt"
-	"log"
-	"strconv"
-	"strings"
-	"time"
-
-	"net/http"
 
 	"github.com/Yashrajkanade/bookings/internal/config"
 	"github.com/Yashrajkanade/bookings/internal/driver"
@@ -19,8 +13,15 @@ import (
 	"github.com/Yashrajkanade/bookings/internal/repository"
 	"github.com/Yashrajkanade/bookings/internal/repository/dbrepo"
 	"github.com/go-chi/chi"
+
+	"log"
+	"net/http"
+	"strconv"
+	"strings"
+	"time"
 )
 
+// Repo the repository used by the handlers
 var Repo *Repository
 
 // Repository is the repository type
@@ -34,6 +35,14 @@ func NewRepo(a *config.AppConfig, db *driver.DB) *Repository {
 	return &Repository{
 		App: a,
 		DB:  dbrepo.NewPostgresRepo(db.SQL, a),
+	}
+}
+
+// NewTestRepo creates a new repository
+func NewTestRepo(a *config.AppConfig) *Repository {
+	return &Repository{
+		App: a,
+		DB:  dbrepo.NewTestingsRepo(a),
 	}
 }
 
@@ -196,7 +205,7 @@ func (m *Repository) PostReservation(w http.ResponseWriter, r *http.Request) {
 		<strong>Reservation Confirmation</strong><br>
 		Dear %s: <br>
 		This is confirm your reservation from %s to %s.
-	`, reservation.FirstName, reservation.StartDate.Format("2006-01-02"), reservation.EndDate.Format("2006-01-02"))
+`, reservation.FirstName, reservation.StartDate.Format("2006-01-02"), reservation.EndDate.Format("2006-01-02"))
 
 	msg := models.MailData{
 		To:       reservation.Email,
@@ -212,7 +221,7 @@ func (m *Repository) PostReservation(w http.ResponseWriter, r *http.Request) {
 	htmlMessage = fmt.Sprintf(`
 		<strong>Reservation Notification</strong><br>
 		A reservation has been made for %s from %s to %s.
-	`, reservation.Room.RoomName, reservation.StartDate.Format("2006-01-02"), reservation.EndDate.Format("2006-01-02"))
+`, reservation.Room.RoomName, reservation.StartDate.Format("2006-01-02"), reservation.EndDate.Format("2006-01-02"))
 
 	msg = models.MailData{
 		To:      "me@here.com",
@@ -676,7 +685,7 @@ func (m *Repository) AdminReservationsCalendar(w http.ResponseWriter, r *http.Re
 		reservationMap := make(map[string]int)
 		blockMap := make(map[string]int)
 
-		for d := firstOfMonth; d.After(lastOfMonth) == false; d = d.AddDate(0, 0, 1) {
+		for d := firstOfMonth; !d.After(lastOfMonth); d = d.AddDate(0, 0, 1) {
 			reservationMap[d.Format("2006-01-2")] = 0
 			blockMap[d.Format("2006-01-2")] = 0
 		}
@@ -691,7 +700,7 @@ func (m *Repository) AdminReservationsCalendar(w http.ResponseWriter, r *http.Re
 		for _, y := range restrictions {
 			if y.ReservationID > 0 {
 				// it's a reservation
-				for d := y.StartDate; d.After(y.EndDate) == false; d = d.AddDate(0, 0, 1) {
+				for d := y.StartDate; !d.After(y.EndDate); d = d.AddDate(0, 0, 1) {
 					reservationMap[d.Format("2006-01-2")] = y.ReservationID
 				}
 			} else {
@@ -795,7 +804,7 @@ func (m *Repository) AdminPostReservationsCalendar(w http.ResponseWriter, r *htt
 	}
 
 	// now handle new blocks
-	for name, _ := range r.PostForm {
+	for name := range r.PostForm {
 		if strings.HasPrefix(name, "add_block") {
 			exploded := strings.Split(name, "_")
 			roomID, _ := strconv.Atoi(exploded[2])
